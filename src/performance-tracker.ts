@@ -237,7 +237,9 @@ export class PerformanceTracker {
                     const milestone = nextMilestone(post, multiple, this.opts.milestones);
                     if (milestone != null) {
                         await this.opts.postUpdate(formatMilestoneUpdate(post, milestone, mcap, now), post.messageId);
-                        post.announced.push(milestone);
+                        for (const crossed of this.opts.milestones) {
+                            if (crossed <= milestone && !post.announced.includes(crossed)) post.announced.push(crossed);
+                        }
                         this.stats.milestonesPosted++;
                         continue;
                     }

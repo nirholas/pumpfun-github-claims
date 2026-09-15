@@ -18,23 +18,18 @@ or put its CA in GitHub.
 | `src/claim-monitor.ts` | Fetch and decode successful PumpFees claims; extract GitHub identity, PDA, recipient and quote-aware payment fields |
 | `claim-backstop.ts` | Recover claim candidates from verifier signature history alongside websocket detection |
 | `social-fee-index.ts` | Map fee recipients to potentially multiple delegated token mints |
-| `first-claim.ts` | Current PDA-level lifetime classification; not sufficient for coin-specific eligibility |
+| `first-claim.ts` | Legacy PDA-level diagnostics; not used for pair eligibility |
 | `claim-tracker.ts` | Local persisted observations, including GitHub-user/mint keys |
 | `index.ts` | Classification, bounded enrichment and delivery orchestration |
 | `pump-client.ts`, `github-client.ts`, `x-client.ts` | Market, repository, developer and social context |
 | `formatters.ts` | Telegram cards |
 | `channel-policy.ts`, `config.ts` | Feed isolation at configuration and send boundaries |
-| `delivery.ts`, `watchdog.ts` | Delivery health, failure reporting and transport monitoring |
+| `delivery.ts`, `delivery-outbox.ts`, `watchdog.ts` | Durable delivery, failure reporting and transport monitoring |
 | `event-store.ts`, `health.ts`, `webhooks.ts` | Recent events, health, read-only API/SSE and optional webhook delivery |
 
-## Current runtime versus intended behavior
+## Runtime attribution flow
 
-The runtime currently rejects prior claims using the **shared PDA lifetime**
-before resolving a token. Multi-coin withdrawals now remain unresolved and no
-headline CA is selected. The lifetime gate can still miss a developer's first
-attributable claim on a different coin.
-
-The intended flow is:
+The runtime follows this flow:
 
 ```text
 Successful GitHub claim transaction
@@ -57,16 +52,15 @@ Keep the existing claims and graduations services separate. The legacy
 Publishing the standalone source does not deploy it, change Telegram tokens,
 transfer channel ownership or migrate historical records.
 
-The implementation needs durable pair-level claim history, attribution evidence
-and a retryable outbox. Preserve those records during cutover and run only one
-publisher for the channel. The existing audit script classifies PDA-wide first
-claims; it cannot prove there were no missed first claims on other coins.
+The implementation has durable pair-level history and a retryable outbox.
+Preserve those records during cutover and run only one publisher. The existing
+audit script classifies PDA-wide first claims; it cannot prove there were no
+missed first claims on other coins.
 
 ## Verification
 
 Run `npm run typecheck`, `npm test` and `npm run build` at the repository root for
-local validation. These validate the current implementation, not completion of
-the new attribution contract. The product contract lists the required per-coin,
-history, replay and delivery scenarios. Read [upstream decoder policy](https://github.com/nirholas/pump-fun-sdk/blob/main/DECODERS.md) before
+local validation. The product contract lists the per-coin, history, replay and
+delivery scenarios. Read [upstream decoder policy](https://github.com/nirholas/pump-fun-sdk/blob/main/DECODERS.md) before
 changing binary event parsing; the standalone extraction records its source
 revision and must document future decoder divergence.

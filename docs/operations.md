@@ -24,8 +24,8 @@ The audit classifies PDA lifetime evidence and does not establish coin attributi
 
 `npm start` reads `.env` and starts the real publisher. Never run a second
 publisher against the production channel while the existing service is active.
-The historical profile name is retained for compatibility, not a statement that
-its current lifetime gate meets the intended per-coin rule.
+The historical profile name is retained for compatibility. Pair eligibility is
+transaction-evidence based rather than controlled by the PDA lifetime gate.
 
 ## Container
 
@@ -47,8 +47,8 @@ The existing claims service is documented upstream as `pumpfun-claims-bot`,
 channel `-1003533969743`. Verify the live revision, bot identity and configuration
 before a cutover. The unrelated graduation service is `pumpfun-channel-bot`.
 
-Complete attribution and history work first. Preserve history, provenance,
-pending deliveries, configuration and rollback artifacts. Stop the old publisher
+Preserve history, provenance, pending deliveries, configuration and rollback
+artifacts. Stop the old publisher
 before starting the replacement and validate delivery with real events. Do not
 send diagnostics or test posts to the public channel. Do not share a bot token
 between independent polling processes.

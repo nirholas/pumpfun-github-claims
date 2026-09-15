@@ -9,32 +9,25 @@ extraction preserves the existing channel-bot runtime and its tests.
 - Websocket monitoring plus a verifier-history backstop and RPC fallback.
 - GitHub/repository, token-market and social enrichment.
 - Telegram formatting, delivery checks, feed policy and operational diagnostics.
-- Evidence labels for verified repository, verified creator-wallet, mismatch,
-  unverified and unresolved pooled cases; pooled events select no primary CA.
+- Evidence labels for transaction attribution, repository/creator verification,
+  mismatch and unresolved cases; unresolved events select no CA.
 - Local history, recent-event API, SSE, optional webhooks and tests.
+- Same-transaction distribution decoding, current fee-share mappings, normalized
+  prices, atomic pair ledgers and a durable delivery outbox.
 
-## Work required for the product contract
+## Remaining production work
 
-1. Establish reproducible coin attribution for shared GitHub fee withdrawals.
-   Retain unresolved events. Do not substitute highest market cap or all linked
-   coins for evidence. Capture real multi-coin transaction fixtures.
-2. Separate developer-wide lifetime status from per-pair eligibility. Replace
-   the early lifetime rejection only when reliable attribution is available.
-3. Backfill verified GitHub-ID/mint history with explicit coverage, source
+1. Backfill verified GitHub-ID/mint history with explicit coverage, source
    transactions and slots. Do not treat an empty local store as proof of first.
-4. Replace additive fee-index updates and preserve historical delegation state
+2. Preserve historical delegation state
    separately from current mappings.
-5. Add durable pending deliveries and atomic duplicate prevention across retries,
-   restarts and workers. Migrate history before a production cutover.
-6. Persist the card attribution status and evidence provenance for downstream
+3. Persist card evidence provenance beyond the bounded in-memory stream for downstream
    consumers; keep developer-first-ever and per-coin history separate.
-7. Correct token prices: account for base/quote decimals and quote currency,
-   and source current AMM prices after graduation.
+4. Reconcile Telegram's narrow acknowledgement crash window if an external
+   channel-history source becomes available; Bot API sends have no idempotency key.
 
-The existing `first-claim.test.ts` deliberately tests inherited behavior,
-including a 1% lifetime tolerance and missing-counter fallback. Those passing
-tests are not approval of that behavior as the new product contract. Add the
-acceptance scenarios in [product.md](product.md) when replacing that path.
+The inherited `first-claim.test.ts` covers PDA-level diagnostic behavior, but
+that helper no longer gates evidenced developer–coin alerts.
 
 The lifetime audit script likewise audits PDA-level claims, not first claims
 for each coin. No `FIRST` lines is not proof that the per-coin feed missed nothing.

@@ -23,13 +23,14 @@ The claim and that ongoing choice are separate facts.
 
 | Label | Meaning |
 | --- | --- |
+| **Transaction-Attributed GitHub Fee Claim** | This transaction names the coin and distributes its fees to the claimed GitHub fee account. |
 | **Verified GitHub Fee Claim** | Claiming username exactly matches the repository owner in token metadata. |
 | **Creator-Wallet GitHub Fee Claim** | Recipient wallet also created the token; repository ownership is not established. |
 | **Identity Mismatch** | Claiming username differs from the metadata repository owner; a lookalike is possible. |
 | **Unverified** | The withdrawal is real, but the GitHub-to-coin relationship is not proven. |
-| **Unresolved Pooled** | Several coins share the fee account; no CA or per-coin amount is selected. |
+| **Unresolved** | The withdrawal lacks same-transaction coin-distribution evidence and is not published as a trading alert. |
 
-“First-ever” refers to the shared GitHub fee account, not necessarily a coin.
+“First” means the first developer–coin pair within the persisted history coverage.
 Trade buttons are limited to verified relationships. Every card is a research
 lead, not an endorsement.
 
@@ -56,12 +57,11 @@ This is the standalone home for the concept, extracted from
 existing TypeScript monitor, enrichment clients, Telegram delivery, diagnostics
 and tests. The source can build and run independently of the general SDK.
 
-**The runtime does not yet fully implement the per-coin rule above.** It still
-uses a shared-account lifetime gate, but it no longer chooses a headline mint
-for multi-coin withdrawals. A shared GitHub fee-account withdrawal does not itself name a coin; reliable
-coin attribution and historical per-pair tracking remain required work. See
-[implementation status](docs/implementation-status.md) before running a feed.
-The included tests validate the current safety behavior, not completion of that work.
+The runtime implements the per-coin rule with same-transaction
+`DistributeCreatorFeesEvent` evidence. It never selects a mint by market cap or
+by a historical shared-PDA candidate list. Unattributed withdrawals remain in
+the event/API stream without producing a channel card. See the
+[2026-09-15 repair audit](docs/audit-2026-09-15.md) for evidence and limitations.
 
 This repository's creation does not change the live channel deployment.
 

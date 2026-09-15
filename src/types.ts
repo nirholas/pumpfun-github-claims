@@ -111,6 +111,17 @@ export const CLAIM_EVENT_DISCRIMINATORS: Record<string, { label: string; isCreat
 
 export const DEFAULT_GRADUATION_SOL_THRESHOLD = 85;
 
+/** Coin-level evidence from a distribution in the same claim transaction. */
+export interface ClaimDistributionEvidence {
+    mint: string;
+    sharingConfig: string;
+    shareBps: number;
+    distributedRaw: string;
+    recipientAmountRaw: string;
+    quoteMint?: string;
+    source: 'same_transaction_distribution';
+}
+
 // ============================================================================
 // Events
 // ============================================================================
@@ -149,6 +160,10 @@ export interface FeeClaimEvent {
     lifetimeStableClaimedRaw?: number;
     /** When multiple tokens share the same social fee PDA (scam vector), all candidate mints */
     allCandidateMints?: string[];
+    /** Exact distribution evidence for this event's developer–coin pair. */
+    attributionEvidence?: ClaimDistributionEvidence;
+    /** All evidenced coin distributions in the transaction. */
+    transactionDistributions?: ClaimDistributionEvidence[];
     /** Quote mint for the claim (V2 events only — wrapped SOL or USDC). Base58. */
     quoteMint?: string;
     /** Display ticker for the quote currency, e.g. "SOL" or "USDC". Defaults to SOL when absent. */
