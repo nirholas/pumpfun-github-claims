@@ -95,6 +95,13 @@ particular coin or veto an experienced developer's new-coin claim.
 
 ## What a card should show
 
+### Trader-facing evidence labels
+
+Use **Verified GitHub Fee Claim**, **Creator-Wallet GitHub Fee Claim**,
+**Identity Mismatch**, **Unverified**, or **Unresolved Pooled**. Only the first
+two statuses may show trade links. “First-ever” applies to the shared GitHub fee
+account. These labels describe evidence, not endorsement or future support.
+
 - The full CA, name, symbol and first-claim status for the developer–coin pair.
 - Claim transaction, timestamp, recipient, amount and correctly identified
   quote currency. A pooled withdrawal total must be labeled as such.
@@ -111,7 +118,7 @@ with bounded concurrency and deadlines. Keep discovery and delivery state
 separate, persist pending deliveries, and retry the same event on send failure.
 Replays, restarts and concurrent workers must not create duplicate pair alerts.
 
-## Implementation status — September 13, 2026
+## Implementation status — September 15, 2026
 
 This document is the agreed product contract. The inherited `src/`
 implementation does **not yet implement the complete per-coin rule**:
@@ -119,9 +126,9 @@ implementation does **not yet implement the complete per-coin rule**:
 | Current behavior | Required correction |
 | --- | --- |
 | `first-claim.ts` rejects prior PDA lifetime claims before mint resolution | Separate developer history from per-pair eligibility |
-| `index.ts` picks the highest-market-cap linked mint | Establish coin attribution from evidence before per-pair deduplication |
+| Multi-coin events now select no primary mint | Establish transaction-level attribution before per-pair deduplication |
 | `claim-tracker.ts` has user–mint keys, populated from that inferred mint | Persist verified per-pair history and explicit coverage/provenance |
-| `formatters.ts` labels metadata as “Repo Claimed” | Use “Linked repository”; separate it from the claiming GitHub identity |
+| Cards now distinguish claiming identity, metadata repository and evidence status | Persist that status for every downstream consumer |
 | `pump-client.ts` uses raw curve-reserve ratios as SOL prices after graduation | Normalize decimals and use a current, quote-aware AMM price |
 | `social-fee-index.ts` only adds shareholder mappings on updates | Replace superseded mappings; preserve historical evidence separately |
 | Delivery and history are not a durable, atomic outbox | Prevent losses and duplicates across retries, restarts and workers |

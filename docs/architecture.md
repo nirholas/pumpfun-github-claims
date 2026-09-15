@@ -30,9 +30,9 @@ or put its CA in GitHub.
 ## Current runtime versus intended behavior
 
 The runtime currently rejects prior claims using the **shared PDA lifetime**
-before resolving a token. It then selects the highest-market-cap linked token
-and applies a local user–mint guard. This can miss a developer's first claim on
-a different coin, and the selected mint is not proven by the withdrawal event.
+before resolving a token. Multi-coin withdrawals now remain unresolved and no
+headline CA is selected. The lifetime gate can still miss a developer's first
+attributable claim on a different coin.
 
 The intended flow is:
 

@@ -9,6 +9,8 @@ extraction preserves the existing channel-bot runtime and its tests.
 - Websocket monitoring plus a verifier-history backstop and RPC fallback.
 - GitHub/repository, token-market and social enrichment.
 - Telegram formatting, delivery checks, feed policy and operational diagnostics.
+- Evidence labels for verified repository, verified creator-wallet, mismatch,
+  unverified and unresolved pooled cases; pooled events select no primary CA.
 - Local history, recent-event API, SSE, optional webhooks and tests.
 
 ## Work required for the product contract
@@ -24,9 +26,8 @@ extraction preserves the existing channel-bot runtime and its tests.
    separately from current mappings.
 5. Add durable pending deliveries and atomic duplicate prevention across retries,
    restarts and workers. Migrate history before a production cutover.
-6. Update cards: first claim for this coin; developer-first-ever or previous
-   coins as context; linked repository instead of “Repo Claimed”; explicit
-   pooled-payment scope and incomplete history.
+6. Persist the card attribution status and evidence provenance for downstream
+   consumers; keep developer-first-ever and per-coin history separate.
 7. Correct token prices: account for base/quote decimals and quote currency,
    and source current AMM prices after graduation.
 

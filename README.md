@@ -19,6 +19,20 @@ The developer need not launch the token or publish its CA in GitHub. A developer
 may have many coins delegated to them and choose to support a particular one.
 The claim and that ongoing choice are separate facts.
 
+## How traders should read the labels
+
+| Label | Meaning |
+| --- | --- |
+| **Verified GitHub Fee Claim** | Claiming username exactly matches the repository owner in token metadata. |
+| **Creator-Wallet GitHub Fee Claim** | Recipient wallet also created the token; repository ownership is not established. |
+| **Identity Mismatch** | Claiming username differs from the metadata repository owner; a lookalike is possible. |
+| **Unverified** | The withdrawal is real, but the GitHub-to-coin relationship is not proven. |
+| **Unresolved Pooled** | Several coins share the fee account; no CA or per-coin amount is selected. |
+
+“First-ever” refers to the shared GitHub fee account, not necessarily a coin.
+Trade buttons are limited to verified relationships. Every card is a research
+lead, not an endorsement.
+
 ## One alert per developer and coin
 
 | Claim | Notify? |
@@ -42,12 +56,12 @@ This is the standalone home for the concept, extracted from
 existing TypeScript monitor, enrichment clients, Telegram delivery, diagnostics
 and tests. The source can build and run independently of the general SDK.
 
-**The inherited runtime does not yet fully implement the per-coin rule above.**
-It uses a shared-account lifetime gate and chooses a headline mint by market
-cap. A shared GitHub fee-account withdrawal does not itself name a coin; reliable
+**The runtime does not yet fully implement the per-coin rule above.** It still
+uses a shared-account lifetime gate, but it no longer chooses a headline mint
+for multi-coin withdrawals. A shared GitHub fee-account withdrawal does not itself name a coin; reliable
 coin attribution and historical per-pair tracking remain required work. See
 [implementation status](docs/implementation-status.md) before running a feed.
-The included tests validate the inherited behavior, not completion of that work.
+The included tests validate the current safety behavior, not completion of that work.
 
 This repository's creation does not change the live channel deployment.
 
