@@ -24,6 +24,7 @@ The claim and that ongoing choice are separate facts.
 | Label | Meaning |
 | --- | --- |
 | **Transaction-Attributed GitHub Fee Claim** | This transaction names the coin and distributes its fees to the claimed GitHub fee account. |
+| **Fee-History-Attributed GitHub Fee Claim** | The claim transaction names no coin, but one coin paid at least 90% of the withdrawn fees into this exact fee account since its previous claim, and those distributions cover at least 90% of the withdrawal. |
 | **Verified GitHub Fee Claim** | Claiming username exactly matches the repository owner in token metadata. |
 | **Creator-Wallet GitHub Fee Claim** | Recipient wallet also created the token; repository ownership is not established. |
 | **Identity Mismatch** | Claiming username differs from the metadata repository owner; a lookalike is possible. |
@@ -31,6 +32,12 @@ The claim and that ongoing choice are separate facts.
 | **Unresolved** | The withdrawal lacks same-transaction coin-distribution evidence and is not published as a trading alert. |
 
 “First” means the first developer–coin pair within the persisted history coverage.
+Claims that look like impersonation are held, not posted: a GitHub account
+younger than 30 days claiming a coin that is either a smaller copy of a
+same-name coin or points at a repository created in the last 7 days. A
+lookalike account can make the repository owner match by construction, so that
+match alone never vouches for a new account.
+
 Trade buttons are limited to verified relationships. Every card is a research
 lead, not an endorsement.
 

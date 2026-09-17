@@ -75,8 +75,11 @@ const CREATOR_CLAIM_EVENT_DISCS = new Set(
 );
 
 const DISTRIBUTE_CREATOR_FEES_EVENT_DISC = 'a537817004b3ca28';
+/** PDA history lookback bounds for claims with no same-transaction distribution. */
+const HISTORY_MAX_TX = 40;
+const HISTORY_MAX_AGE_SEC = 7 * 86_400;
 
-interface ParsedDistribution {
+export interface ParsedDistribution {
     mint: string;
     sharingConfig: string;
     shareholders: Array<{ address: string; shareBps: number }>;
@@ -140,6 +143,63 @@ export function evidenceForSocialFeePda(
         });
     }
     return [...byMint.values()];
+}
+
+const SOL_QUOTE_ALIASES = new Set([WSOL_MINT, '11111111111111111111111111111111']);
+
+/** A distribution with no V2 quote_mint, or the system id, was paid in SOL. */
+function sameQuote(a: string | undefined, b: string | undefined): boolean {
+    const norm = (m: string | undefined) => (!m || SOL_QUOTE_ALIASES.has(m) ? WSOL_MINT : m);
+    return norm(a) === norm(b);
+}
+
+/** A distribution that pays this PDA must hold at least this share of the withdrawal. */
+export const HISTORY_DOMINANT_SHARE_BPS = 9_000n;
+
+/**
+ * Attribute a withdrawal from the distributions that filled the PDA since its
+ * previous claim. Only the claim's own quote currency counts. The result is a
+ * single mint or nothing: the observed distributions must cover at least 90%
+ * of the amount withdrawn (so history the lookback did not reach cannot hide a
+ * different coin), and one mint must account for at least 90% of that.
+ */
+export function evidenceFromPdaHistory(
+    distributions: ParsedDistribution[],
+    socialFeePda: string,
+    claimedRaw: bigint,
+    claimQuoteMint?: string,
+): ClaimDistributionEvidence[] {
+    if (claimedRaw <= 0n) return [];
+    const byMint = new Map<string, { raw: bigint; last: ParsedDistribution; bps: number }>();
+    let total = 0n;
+    for (const distribution of distributions) {
+        if (!sameQuote(distribution.quoteMint, claimQuoteMint)) continue;
+        const shareholder = distribution.shareholders.find((s) => s.address === socialFeePda);
+        if (!shareholder || shareholder.shareBps <= 0) continue;
+        const raw = distribution.distributedRaw * BigInt(shareholder.shareBps) / 10_000n;
+        if (raw === 0n) continue;
+        total += raw;
+        const prev = byMint.get(distribution.mint);
+        byMint.set(distribution.mint, { raw: (prev?.raw ?? 0n) + raw, last: distribution, bps: shareholder.shareBps });
+    }
+    if (total * 10_000n < claimedRaw * HISTORY_DOMINANT_SHARE_BPS) return [];
+    const [top] = [...byMint.entries()].sort((a, b) => (b[1].raw > a[1].raw ? 1 : b[1].raw < a[1].raw ? -1 : 0));
+    if (!top || top[1].raw * 10_000n < total * HISTORY_DOMINANT_SHARE_BPS) return [];
+    const [mint, { raw, last, bps }] = top;
+    return [{
+        mint,
+        sharingConfig: last.sharingConfig,
+        shareBps: bps,
+        distributedRaw: total.toString(),
+        recipientAmountRaw: raw.toString(),
+        quoteMint: last.quoteMint,
+        source: 'pda_history_distribution',
+    }];
+}
+
+/** True when a transaction's logs show a social fee PDA withdrawal. */
+export function isSocialClaimLog(logs: string[]): boolean {
+    return logs.some((line) => line.includes('Program log: Instruction: ClaimSocialFeePda'));
 }
 
 export function expandAttributedClaimEvents(event: FeeClaimEvent): FeeClaimEvent[] {
@@ -692,15 +752,22 @@ export class ClaimMonitor {
             const slot = tx.slot;
 
             // Process all claim instructions (social, creator, distribution — not just social)
+            const ordinals = new Map<ClaimType, number>();
             for (const ix of instructions) {
                 if (!('data' in ix) || !ix.data) continue;
                 const programId = ix.programId.toBase58();
                 const matchedDef = this.matchClaimInstruction(ix.data, programId);
                 if (!matchedDef) continue;
+                const ordinal = ordinals.get(matchedDef.claimType) ?? 0;
+                ordinals.set(matchedDef.claimType, ordinal + 1);
 
                 const event = this.buildClaimEvent(
-                    signature, slot, timestamp, tx, matchedDef, ix,
+                    signature, slot, timestamp, tx, matchedDef, ix, ordinal,
                 );
+                if (event && event.claimType === 'claim_social_fee_pda' && !event.isFake
+                    && event.socialFeePda && !event.transactionDistributions?.length) {
+                    event.transactionDistributions = await this.historyEvidence(event);
+                }
                 if (event) {
                     for (const attributedEvent of expandAttributedClaimEvents(event)) {
                         this.claimsDetected++;
@@ -741,6 +808,7 @@ export class ClaimMonitor {
         tx: import('@solana/web3.js').ParsedTransactionWithMeta,
         def: InstructionDef,
         ix: import('@solana/web3.js').ParsedInstruction | import('@solana/web3.js').PartiallyDecodedInstruction,
+        ordinal = 0,
     ): FeeClaimEvent | null {
         // Find the claimer from account keys
         const accountKeys = tx.transaction.message.accountKeys;
@@ -772,6 +840,11 @@ export class ClaimMonitor {
         let lifetimeClaimedRaw = 0n;
         const logMessages = tx.meta?.logMessages ?? [];
         const transactionDistributions = parseTransactionDistributions(logMessages);
+        // One transaction can withdraw the same PDA several times (one per quote
+        // currency). The Nth claim instruction owns the Nth claimed event; reading
+        // every event let the last one overwrite the rest, so an 85 SOL
+        // withdrawal was reported as its 0.0001-unit sibling (2026-09-17).
+        let socialEventIndex = 0;
         for (const line of logMessages) {
             if (!line.includes('Program data:')) continue;
             const b64 = line.split('Program data: ')[1]?.trim();
@@ -843,7 +916,8 @@ export class ClaimMonitor {
                 //            + amount_claimed(u64) + claimable_before(u64) + lifetime_claimed(u64)
                 //            + recipient_balance_before(u64) + recipient_balance_after(u64)
                 // V2 trailing fields (post-2026-05-21): quote_mint(pubkey) + lifetime_stable_claimed(u64)
-                if (disc === '3212c141edd2eaec' && def.claimType === 'claim_social_fee_pda') {
+                if (disc === '3212c141edd2eaec' && def.claimType === 'claim_social_fee_pda'
+                    && socialEventIndex++ === ordinal) {
                     let offset = 16; // skip disc(8) + timestamp(8)
                     // user_id: Borsh string = 4-byte LE length prefix + UTF-8 bytes
                     if (bytes.length >= offset + 4) {
@@ -1028,6 +1102,41 @@ export class ClaimMonitor {
             amountQuote,
             lifetimeClaimedQuote,
         };
+    }
+
+    /**
+     * Walk the PDA's history backwards from this claim to its previous claim
+     * and attribute the withdrawal to the coin whose distributions filled it.
+     * Bounded by HISTORY_MAX_TX fetches and HISTORY_MAX_AGE_SEC; a lookback that
+     * runs out before covering the withdrawal yields no attribution.
+     */
+    private async historyEvidence(event: FeeClaimEvent): Promise<ClaimDistributionEvidence[]> {
+        const pda = event.socialFeePda!;
+        try {
+            const refs = await this.rpc.withFallback((conn) => conn.getSignaturesForAddress(
+                new PublicKey(pda), { before: event.txSignature, limit: HISTORY_MAX_TX },
+            ));
+            const distributions: ParsedDistribution[] = [];
+            for (const ref of refs) {
+                if (ref.err) continue;
+                if (ref.blockTime != null && event.timestamp - ref.blockTime > HISTORY_MAX_AGE_SEC) break;
+                const tx = await this.rpc.withFallback((conn) => conn.getTransaction(ref.signature, {
+                    commitment: 'confirmed', maxSupportedTransactionVersion: 0,
+                }));
+                const logs = tx?.meta?.logMessages ?? [];
+                distributions.push(...parseTransactionDistributions(logs));
+                if (isSocialClaimLog(logs)) break;
+            }
+            const evidence = evidenceFromPdaHistory(distributions, pda, BigInt(event.amountLamports), event.quoteMint);
+            if (evidence.length) {
+                log.info('Claim %s attributed from PDA history: mint=%s (%d distributions scanned)',
+                    event.txSignature.slice(0, 8), evidence[0]!.mint.slice(0, 8), distributions.length);
+            }
+            return evidence;
+        } catch (err) {
+            log.warn('PDA history attribution failed for %s: %s', event.txSignature.slice(0, 8), String(err).slice(0, 120));
+            return [];
+        }
     }
 
     private trimProcessedCache(): void {

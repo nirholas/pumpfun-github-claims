@@ -21,6 +21,7 @@ import { fetchGitHubUserById, fetchRepoFromUrls } from './github-client.js';
 import { fetchXProfile } from './x-client.js';
 import { formatGitHubClaimFeed, formatCreatorClaimFeed, formatGraduationFeed, formatLaunchFeed, formatWhaleFeed, formatFeeDistributionFeed } from './formatters.js';
 import type { ClaimFeedContext, CreatorClaimContext } from './formatters.js';
+import { assessImpersonation } from './impersonation.js';
 import { log, setLogLevel } from './logger.js';
 import { startHealthServer, stopHealthServer } from './health.js';
 import { maskUrl } from './rpc-fallback.js';
@@ -189,13 +190,13 @@ async function main(): Promise<void> {
             : postToChannel(post.caption, { kind: post.kind, keyboard });
     }
 
-    const pipeline = { total: 0, socialClaims: 0, creatorClaims: 0, firstClaim: 0, unresolvedClaim: 0, posted: 0, skippedCashback: 0, repeatClaim: 0, fakeClaim: 0, policyRejected: 0 };
+    const pipeline = { total: 0, socialClaims: 0, creatorClaims: 0, firstClaim: 0, unresolvedClaim: 0, impersonationHeld: 0, posted: 0, skippedCashback: 0, repeatClaim: 0, fakeClaim: 0, policyRejected: 0 };
 
     /** True when the operator paused channel posting via /mute. */
     const postingMuted = () => isMuted(state);
     setInterval(() => {
-        log.info('Pipeline: %d total → %d social + %d creator → %d first / %d repeat → %d posted (skip: %d cashback, %d fake)',
-            pipeline.total, pipeline.socialClaims, pipeline.creatorClaims, pipeline.firstClaim, pipeline.repeatClaim, pipeline.posted, pipeline.skippedCashback, pipeline.fakeClaim);
+        log.info('Pipeline: %d total → %d social + %d creator → %d first / %d repeat → %d posted (skip: %d cashback, %d fake, %d unresolved, %d impersonation held)',
+            pipeline.total, pipeline.socialClaims, pipeline.creatorClaims, pipeline.firstClaim, pipeline.repeatClaim, pipeline.posted, pipeline.skippedCashback, pipeline.fakeClaim, pipeline.unresolvedClaim, pipeline.impersonationHeld);
     }, 60_000);
 
     // ── Claim Monitor ────────────────────────────────────────────────
@@ -296,6 +297,30 @@ async function main(): Promise<void> {
                 ? await fetchDevWalletInfo(tokenInfo.creator, mint, config.solanaRpcUrl)
                 : null;
 
+            const impersonation = assessImpersonation({ githubUser, tokenInfo, sameNameTokens, repoInfo });
+            if (impersonation.suspected) {
+                pipeline.impersonationHeld++;
+                const held = store.record({
+                    kind: 'claim',
+                    mint: mint || undefined,
+                    txSignature: event.txSignature,
+                    summary: `Held suspected impersonation claim by ${githubUser?.login ?? event.githubUserId}`,
+                    posted: false,
+                    data: {
+                        type: 'github_social_claim',
+                        githubUser: githubUser?.login ?? null,
+                        mint: mint || null,
+                        attribution: 'suspected_impersonation',
+                        reasons: impersonation.reasons,
+                    },
+                });
+                void webhooks.dispatch(held);
+                log.warn('Held GitHub claim %s by %s (%s) on %s: suspected impersonation (%s)',
+                    event.txSignature.slice(0, 8), event.githubUserId, githubUser?.login ?? '?',
+                    mint.slice(0, 8), impersonation.reasons.join('; '));
+                return;
+            }
+
             const claimNumber = getGithubClaimCount(event.githubUserId, mint) + 1;
             const claimedMints = getGithubUserClaimedMints(event.githubUserId);
             log.info('🚨 GitHub social fee FIRST claim by %s (%s) — %s SOL',
@@ -335,7 +360,7 @@ async function main(): Promise<void> {
                     githubUser: githubUser?.login ?? null,
                     amountSol: event.amountSol,
                     mint: mint || null,
-                    attribution: 'same_transaction_distribution',
+                    attribution: event.attributionEvidence?.source ?? 'same_transaction_distribution',
                     distribution: event.attributionEvidence,
                     candidateMints: event.allCandidateMints ?? [],
                 },

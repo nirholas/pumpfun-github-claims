@@ -119,7 +119,13 @@ export interface ClaimDistributionEvidence {
     distributedRaw: string;
     recipientAmountRaw: string;
     quoteMint?: string;
-    source: 'same_transaction_distribution';
+    /**
+     * `same_transaction_distribution`: the claim transaction itself distributed
+     * the coin's fees to the PDA. `pda_history_distribution`: the distributions
+     * landed in earlier transactions on the same PDA since its previous claim
+     * (pump.fun's own claim flow distributes first, then withdraws separately).
+     */
+    source: 'same_transaction_distribution' | 'pda_history_distribution';
 }
 
 // ============================================================================

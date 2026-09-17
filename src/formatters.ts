@@ -81,6 +81,13 @@ export interface ClaimAttribution {
 export function classifyClaimAttribution(ctx: ClaimFeedContext): ClaimAttribution {
     const { event, githubUser, tokenInfo } = ctx;
     if (event.attributionEvidence) {
+        if (event.attributionEvidence.source === 'pda_history_distribution') {
+            return {
+                status: 'verified_distribution',
+                headline: 'FEE-HISTORY-ATTRIBUTED GITHUB FEE CLAIM',
+                explanation: 'This coin paid at least 90% of the fees withdrawn, in distributions to this exact GitHub fee account since its previous claim.',
+            };
+        }
         return {
             status: 'verified_distribution',
             headline: 'TRANSACTION-ATTRIBUTED GITHUB FEE CLAIM',
@@ -478,7 +485,11 @@ export function formatGitHubClaimFeed(ctx: ClaimFeedContext): { imageUrl: string
     {
         const signals: string[] = [];
 
-        if (attribution.status === 'verified_distribution') signals.push('✅ Coin attribution comes from this transaction’s distribution event');
+        if (attribution.status === 'verified_distribution') {
+            signals.push(ctx.event.attributionEvidence?.source === 'pda_history_distribution'
+                ? '✅ Coin attribution comes from this fee account’s distributions since its last claim'
+                : '✅ Coin attribution comes from this transaction’s distribution event');
+        }
         if (attribution.status === 'verified_repository') signals.push('✅ Repository owner matches claiming GitHub identity');
         if (attribution.status === 'verified_creator_wallet') signals.push('✅ Claim recipient matches token creator wallet');
         if (attribution.status === 'identity_mismatch') signals.push(`🚩 GitHub identity mismatch — do not treat this as project verification`);
