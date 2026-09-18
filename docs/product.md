@@ -28,29 +28,26 @@ coin the developer will continue supporting; that is a separate, ongoing choice.
 
 ## The notification rule
 
-**Notify once for each developer–coin pair**, keyed by stable numeric GitHub
-user ID and full Solana mint address. Symbols and repository names are not keys.
+**Notify once for each GitHub fee account, on its first-ever withdrawal.**
+Keyed by stable numeric GitHub user ID. Symbols, usernames and repository names
+are not keys.
 
 | Event | Channel behavior |
 | --- | --- |
-| Developer first claims rewards attributable to coin A | Notify |
-| Same developer claims coin A again | Suppress |
-| Same developer first claims a different coin B | Notify; show previous claimed coins |
-| Coin B has the same name, symbol or repository as A, but a different CA | Treat it as a different coin |
-| Another developer first claims the same coin | Treat it as a different developer–coin pair |
+| A GitHub account withdraws delegated fees for the first time ever | Notify, naming the coin the withdrawal is attributed to |
+| The same account withdraws again, on the same coin or any other | Suppress |
+| One first-ever withdrawal pays several coins | Notify once |
+| A service account that collects fees for many coins claims a new coin | Suppress: it has withdrawn before |
 | A token merely delegates fees to the developer | No claim notification |
 | An instruction fails or pays no rewards | No claim notification |
-| A pooled claim cannot be attributed to a coin | Retain the unresolved event; do not invent a coin-specific first claim |
+| A pooled first-ever withdrawal cannot be attributed to a coin | Retain the unresolved event; do not invent a coin |
 
-A developer's prior claims on other coins **must not disqualify** their first
-claim on a new coin. Repeated claims on the same coin must not generate more
-alerts. Changing a wallet, GitHub username, quote currency or market-cap ranking
-does not reset that pair's history.
-
-Use **“First claim for this coin”** for the per-pair event. Add **“Developer's
-first-ever GitHub reward claim”** only when complete evidence establishes that
-separate fact. Otherwise show the known previous coins or state that the earlier
-history is incomplete. A locally observed count is not a lifetime claim count.
+"First-ever" is read from the chain, not from local history. Every
+`SocialFeePdaClaimed` event carries the fee account's lifetime totals, which
+already include the claim itself. The claim is first-ever only when the total
+for its own currency equals the claim amount and the other currency's total is
+empty. Because the proof is on-chain, a restart or a lost history volume cannot
+turn a repeat claimer into a "first" one.
 
 ## Example: three.ws and THREE
 
@@ -61,11 +58,12 @@ developer. The developer collected rewards and chose to support that coin as
 the main coin for three.ws, despite having more than 50 coins linked to their
 GitHub identity.
 
-The first attributable claim for that THREE should trigger an alert. Subsequent
-claims for it should not. A first claim for a pumpfun-sdk coin or another THREE
-with a different CA should trigger its own alert and include the developer's
-previous claim history. This is a product example supplied by the owner, not
-an independently reconstructed transaction history or an exclusive commitment.
+The developer's first-ever withdrawal from that GitHub fee account should
+trigger one alert, naming THREE when the withdrawal is attributed to it. No later
+withdrawal should alert, whether it is for THREE, a pumpfun-sdk coin or another
+THREE with a different CA: the account has withdrawn before, and the chain says
+so. This is a product example supplied by the owner, not an independently
+reconstructed transaction history or an exclusive commitment.
 
 ## What must be established
 
@@ -102,7 +100,7 @@ Use **Transaction-Attributed GitHub Fee Claim**, **Verified GitHub Fee Claim**,
 **Unresolved**. Only transaction-attributed or otherwise verified statuses may
 show trade links. These labels describe evidence, not endorsement or future support.
 
-- The full CA, name, symbol and first-claim status for the developer–coin pair.
+- The full CA, name, symbol and first-claim status for the GitHub fee account.
 - Claim transaction, timestamp, recipient, amount and correctly identified
   quote currency. A pooled withdrawal total must be labeled as such.
 - GitHub identity, account age, project/repository information, activity and

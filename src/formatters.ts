@@ -196,7 +196,7 @@ export function formatGitHubClaimFeed(ctx: ClaimFeedContext): { imageUrl: string
             : '⚠️';
     L.push(`${badge} <b>${attribution.headline}</b>`);
     L.push(esc(attribution.explanation));
-    if (ctx.isFirstClaim) L.push('First claim observed for this developer–coin pair within persisted history coverage.');
+    if (ctx.isFirstClaim) L.push('First-ever withdrawal from this GitHub fee account, confirmed by its on-chain lifetime total.');
 
     // Influencer badge right after header
     const tier = getInfluencerTier(

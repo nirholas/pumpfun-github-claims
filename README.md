@@ -31,7 +31,7 @@ The claim and that ongoing choice are separate facts.
 | **Unverified** | The withdrawal is real, but the GitHub-to-coin relationship is not proven. |
 | **Unresolved** | The withdrawal lacks same-transaction coin-distribution evidence and is not published as a trading alert. |
 
-“First” means the first developer–coin pair within the persisted history coverage.
+“First” means the GitHub fee account's first-ever withdrawal, proven by the lifetime totals in the on-chain claim event.
 Claims that look like impersonation are held, not posted: a GitHub account
 younger than 30 days claiming a coin that is either a smaller copy of a
 same-name coin or points at a repository created in the last 7 days. A

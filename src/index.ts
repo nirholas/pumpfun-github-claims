@@ -34,6 +34,7 @@ import { Watchdog } from './watchdog.js';
 import { maskRpcUrl } from './rpc-fallback.js';
 import {
     formatSkippedClaim,
+    onchainClaimVerdict,
 } from './first-claim.js';
 import { applyQuoteAsset, resolveQuoteAsset } from './quote-asset.js';
 import { assertPostAllowed, ChannelPolicyError, type PostKind } from './channel-policy.js';
@@ -192,6 +193,9 @@ async function main(): Promise<void> {
 
     const pipeline = { total: 0, socialClaims: 0, creatorClaims: 0, firstClaim: 0, unresolvedClaim: 0, impersonationHeld: 0, posted: 0, skippedCashback: 0, repeatClaim: 0, fakeClaim: 0, policyRejected: 0 };
 
+    /** GitHub accounts whose first-ever withdrawal is already being announced. */
+    const firstClaimsInFlight = new Set<string>();
+
     /** True when the operator paused channel posting via /mute. */
     const postingMuted = () => isMuted(state);
     setInterval(() => {
@@ -224,6 +228,32 @@ async function main(): Promise<void> {
                 return;
             }
 
+            // The feed announces a GitHub fee account's first-ever withdrawal,
+            // once per account, never once per coin. The event's lifetime
+            // counters already include this claim, so an account that has
+            // withdrawn before is identifiable from the chain alone, with no
+            // local history that a restart could wipe. Keying on developer and
+            // coin let a fee-routing account with dozens of linked coins and
+            // thousands of SOL withdrawn post a "first claim" for every new coin.
+            const onchain = onchainClaimVerdict({
+                amount: event.amountLamports,
+                lifetimeSol: event.lifetimeClaimedLamports,
+                lifetimeStable: event.lifetimeStableClaimedRaw,
+                quoteMint: event.quoteMint,
+                isFake: false,
+            });
+            if (onchain === 'repeat') {
+                pipeline.repeatClaim++;
+                markGithubUserClaimed(event.githubUserId);
+                log.info(formatSkippedClaim('repeat', event, mint));
+                return;
+            }
+            if (hasGithubUserClaimed(event.githubUserId) || firstClaimsInFlight.has(event.githubUserId)) {
+                pipeline.repeatClaim++;
+                log.info(formatSkippedClaim('repeat', event, mint));
+                return;
+            }
+
             // A fee-account mapping is only delegation context. Publishing a
             // coin requires a same-transaction distribution that names the mint
             // and pays this exact social fee PDA.
@@ -247,19 +277,15 @@ async function main(): Promise<void> {
                 return;
             }
 
-            // The chain did not rule it out. The local tracker, keyed by dev
-            // and coin, is the second guard, and it needs the resolved coin.
-            if (hasGithubUserClaimed(event.githubUserId, mint)) {
-                pipeline.repeatClaim++;
-                log.info(formatSkippedClaim('repeat', event, mint));
-                return;
-            }
             if (outbox.hasPair(event.githubUserId, mint)) {
                 log.info('Claim pair already waits in the delivery outbox: github=%s mint=%s',
                     event.githubUserId, mint.slice(0, 8));
                 return;
             }
             pipeline.firstClaim++;
+            // One first-ever withdrawal can pay several coins, which arrive as
+            // one event per coin. Only the first of them is announced.
+            firstClaimsInFlight.add(event.githubUserId);
             // Paid in an asset outside QUOTE_MINT_INFO: read its real decimals
             // and symbol from the chain before any card is built.
             if (event.quoteResolved === false && event.quoteMint) {
