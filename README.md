@@ -116,3 +116,7 @@ bot through the deployment configuration.
 See [provenance](docs/provenance.md) for the extraction revision and boundaries.
 Copyright 2026 nirholas. The upstream [license](LICENSE) is preserved; this
 public repository does not grant an open-source license.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=nirholas/pumpfun-github-claims&type=Date)](https://www.star-history.com/#nirholas/pumpfun-github-claims&Date)
