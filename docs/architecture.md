@@ -16,6 +16,8 @@ or put its CA in GitHub.
 | Component | Responsibility |
 | --- | --- |
 | `src/claim-monitor.ts` | Fetch and decode successful PumpFees claims; extract GitHub identity, PDA, recipient and quote-aware payment fields |
+| `src/claim-attribution.ts` | Pair each claim instruction with its own payout event; skip fee sweeps, which are never claims |
+| `src/pump-events.ts` | Length-tolerant Pump, PumpSwap and PumpFees event decoders keyed by Anchor discriminator |
 | `claim-backstop.ts` | Recover claim candidates from verifier signature history alongside websocket detection |
 | `social-fee-index.ts` | Map fee recipients to potentially multiple delegated token mints |
 | `first-claim.ts` | Legacy PDA-level diagnostics; not used for pair eligibility |
@@ -64,3 +66,5 @@ local validation. The product contract lists the per-coin, history, replay and
 delivery scenarios. Read [upstream decoder policy](https://github.com/nirholas/pump-fun-sdk/blob/main/DECODERS.md) before
 changing binary event parsing; the standalone extraction records its source
 revision and must document future decoder divergence.
+[Provenance](provenance.md) records the October 2026 decoder divergence and its
+regression fixtures.

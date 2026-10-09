@@ -998,6 +998,13 @@ export function formatWhaleFeed(
     lines.push('');
 
     lines.push(`${emoji}  <b>${event.solAmount.toFixed(2)} SOL</b>`);
+    if (event.completedCurve) {
+        // Synthetic migration: the buy completed the curve, then kept buying from the pool part.
+        const split = event.postCompleteSolAmount
+            ? ` (${(event.curveSolAmount ?? 0).toFixed(2)} SOL on the curve + ${event.postCompleteSolAmount.toFixed(2)} SOL after it)`
+            : '';
+        lines.push(`🎓  Completed the bonding curve${split}`);
+    }
 
     const trader = `<a href="https://pump.fun/profile/${event.user}">${shortAddr(event.user)}</a>`;
     lines.push(`👤  Trader: ${trader}`);

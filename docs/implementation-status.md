@@ -14,6 +14,9 @@ extraction preserves the existing channel-bot runtime and its tests.
 - Local history, recent-event API, SSE, optional webhooks and tests.
 - Same-transaction distribution decoding, current fee-share mappings, normalized
   prices, atomic pair ledgers and a durable delivery outbox.
+- Pump October 2026 upgrade: V2 claim instructions, length-tolerant event
+  decoders, per-instruction payout attribution, and fee sweeps that never count
+  as claims. A sweep-only transaction posts nothing.
 
 ## Remaining production work
 

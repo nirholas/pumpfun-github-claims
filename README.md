@@ -67,7 +67,8 @@ and tests. The source can build and run independently of the general SDK.
 The runtime implements the per-coin rule with same-transaction
 `DistributeCreatorFeesEvent` evidence. It never selects a mint by market cap or
 by a historical shared-PDA candidate list. Unattributed withdrawals remain in
-the event/API stream without producing a channel card. See the
+the event/API stream without producing a channel card. A fee sweep, which only
+moves fees into the creator vault ahead of a claim, is never treated as a claim. See the
 [2026-09-15 repair audit](docs/audit-2026-09-15.md) for evidence and limitations.
 
 This repository's creation does not change the live channel deployment.
