@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "pumpfun-github-claims"
+abstract: "Pump.fun GitHub Claims: first-time fee claims for GitHub-linked coins. Price, market cap, developer history and socials. Read-only Telegram feed."
+repository-code: "https://github.com/nirholas/pumpfun-github-claims"
+url: "https://three.ws"
+authors:
+  - name: three.ws
+    website: "https://three.ws"

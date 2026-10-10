@@ -1,0 +1,27 @@
+# pumpfun-github-claims
+
+> Pump.fun GitHub Claims: first-time fee claims for GitHub-linked coins. Price, market cap, developer history and socials. Read-only Telegram feed.
+
+pumpfun-github-claims is an open-source repository by nirholas, part of the three.ws ecosystem.
+
+## Docs
+
+- [README](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md): install, usage and reference
+- [The signal](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#the-signal)
+- [How traders should read the labels](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#how-traders-should-read-the-labels)
+- [One alert per developer and coin](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#one-alert-per-developer-and-coin)
+- [Project status](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#project-status)
+- [Local development](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#local-development)
+- [Community](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#community)
+- [Source and license](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/README.md#source-and-license)
+- [AGENTS.md](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/AGENTS.md): guidance for coding agents
+- [Full text for LLMs](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/llms-full.txt): the README inlined
+
+## Project
+
+- [Source](https://github.com/nirholas/pumpfun-github-claims)
+- [Issues](https://github.com/nirholas/pumpfun-github-claims/issues)
+- [Discussions](https://github.com/nirholas/pumpfun-github-claims/discussions)
+- [Homepage](https://t.me/pumpfunclaims)
+- [three.ws](https://three.ws): the platform this is part of
+- [All repositories by nirholas](https://github.com/nirholas/nirholas#readme)

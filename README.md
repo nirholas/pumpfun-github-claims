@@ -1,5 +1,10 @@
 # Pump.fun GitHub Claims 🛠️ 💊🟢
 
+<!-- three.ws:badges -->
+[![GitHub stars](https://img.shields.io/github/stars/nirholas/pumpfun-github-claims?style=flat&logo=github)](https://github.com/nirholas/pumpfun-github-claims/stargazers) [![Last commit](https://img.shields.io/github/last-commit/nirholas/pumpfun-github-claims?style=flat)](https://github.com/nirholas/pumpfun-github-claims/commits) [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat)](https://github.com/nirholas/pumpfun-github-claims/pulls) [![AI agent friendly](https://img.shields.io/badge/AI%20agents-AGENTS.md%20%2B%20llms.txt-6d5dfc?style=flat)](https://github.com/nirholas/pumpfun-github-claims/blob/HEAD/AGENTS.md)
+<!-- /three.ws:badges -->
+
+
 **First-time fee claims for GitHub-linked coins.** Price, market cap, developer
 history, project activity, socials and more — a read-only Telegram feed.
 
@@ -120,3 +125,26 @@ public repository does not grant an open-source license.
 ## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=nirholas/pumpfun-github-claims&type=Date)](https://www.star-history.com/#nirholas/pumpfun-github-claims&Date)
+
+<!-- three.ws:growth -->
+## Support the project
+
+If pumpfun-github-claims saves you time, **[star it on GitHub](https://github.com/nirholas/pumpfun-github-claims)**. Stars are how other developers and AI agents find the repositories worth trusting, and they cost you one click.
+
+Know someone who would use it? [Post on X](https://twitter.com/intent/tweet?text=pumpfun-github-claims%3A%20Pump.fun%20GitHub%20Claims%3A%20first-time%20fee%20claims%20for%20GitHub-linked%20coins&url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fpumpfun-github-claims) · [Share on Bluesky](https://bsky.app/intent/compose?text=pumpfun-github-claims%3A%20Pump.fun%20GitHub%20Claims%3A%20first-time%20fee%20claims%20for%20GitHub-linked%20coins%20https%3A%2F%2Fgithub.com%2Fnirholas%2Fpumpfun-github-claims) · [Share on LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fpumpfun-github-claims) · [Submit to Hacker News](https://news.ycombinator.com/submitlink?u=https%3A%2F%2Fgithub.com%2Fnirholas%2Fpumpfun-github-claims&t=pumpfun-github-claims%3A%20Pump.fun%20GitHub%20Claims%3A%20first-time%20fee%20claims%20for%20GitHub-linked%20coins) · [Share on Reddit](https://www.reddit.com/submit?url=https%3A%2F%2Fgithub.com%2Fnirholas%2Fpumpfun-github-claims&title=pumpfun-github-claims%3A%20Pump.fun%20GitHub%20Claims%3A%20first-time%20fee%20claims%20for%20GitHub-linked%20coins)
+
+## Built for AI agents too
+
+Coding agents and LLM tooling can read this repo directly: [AGENTS.md](./AGENTS.md), [llms.txt](./llms.txt), [llms-full.txt](./llms-full.txt). Point an agent at `https://github.com/nirholas/pumpfun-github-claims` and it has the context it needs.
+
+## More from the same author
+
+- [All repositories by nirholas](https://github.com/nirholas/nirholas#readme): the full catalog, grouped by topic
+- [three.ws](https://three.ws): the platform for 3D AI agents with Solana wallets, a skill marketplace and x402 payments
+- Questions or ideas: [open an issue](https://github.com/nirholas/pumpfun-github-claims/issues) or [start a discussion](https://github.com/nirholas/pumpfun-github-claims/discussions)
+
+## Contributors
+
+[![Contributors](https://contrib.rocks/image?repo=nirholas/pumpfun-github-claims)](https://github.com/nirholas/pumpfun-github-claims/graphs/contributors)
+
+<!-- /three.ws:growth -->
