@@ -15,14 +15,14 @@ describe('Claim Tracker', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    vi.mock('node:fs', () => ({
+    vi.doMock('node:fs', () => ({
       existsSync: vi.fn(() => false),
       mkdirSync: vi.fn(),
       readFileSync: vi.fn(() => { throw new Error('ENOENT'); }),
       renameSync: vi.fn(),
       writeFileSync: vi.fn(),
     }));
-    vi.mock('../logger.js', () => ({
+    vi.doMock('../logger.js', () => ({
       log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
     }));
     tracker = await import('../claim-tracker.js');
@@ -102,7 +102,7 @@ describe('Formatters', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    vi.mock('../x-client.js', () => ({
+    vi.doMock('../x-client.js', () => ({
       getInfluencerTier: vi.fn(() => null),
       formatFollowerCount: vi.fn((n: number) => `${n}`),
       influencerLabel: vi.fn(() => ''),
@@ -248,7 +248,7 @@ describe('Social Fee Index', () => {
 
   beforeEach(async () => {
     vi.resetModules();
-    vi.mock('../logger.js', () => ({
+    vi.doMock('../logger.js', () => ({
       log: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
     }));
     index = await import('../social-fee-index.js');
