@@ -701,7 +701,14 @@ export class ClaimMonitor {
             new PublicKey(GITHUB_CLAIM_AUTHORITY), { limit: BACKSTOP_PAGE_SIZE },
         ));
         this.backstopPolls++;
-        const missing = selectBackstopSignatures(refs, earliestBlockTimeSec, (sig) =>
+        // web3.js 3 types blockTime as a bigint-backed UnixTimestamp, so it is
+        // normalised to a plain number before any arithmetic or comparison.
+        const normalisedRefs = refs.map((ref) => ({
+            signature: ref.signature,
+            blockTime: ref.blockTime == null ? null : Number(ref.blockTime),
+            err: ref.err,
+        }));
+        const missing = selectBackstopSignatures(normalisedRefs, earliestBlockTimeSec, (sig) =>
             this.confirmedSignatures.has(sig)
             || this.pendingSignatures.has(sig)
             || (this.fetchAttempts.get(sig) ?? 0) >= BACKSTOP_MAX_ATTEMPTS);
@@ -735,8 +742,8 @@ export class ClaimMonitor {
             this.fetchAttempts.delete(signature);
             if (!tx.meta || tx.meta.err) return;
 
-            const timestamp = tx.blockTime ?? Math.floor(Date.now() / 1000);
-            const slot = tx.slot;
+            const timestamp = tx.blockTime != null ? Number(tx.blockTime) : Math.floor(Date.now() / 1000);
+            const slot = Number(tx.slot);
 
             // One payout per claim instruction (social, creator and distribution),
             // each read from its own event. Sweeps (curve or pool to creator
@@ -827,7 +834,7 @@ export class ClaimMonitor {
                 (a) => a.pubkey.toBase58() === signerKey,
             );
             if (signerIdx >= 0 && signerIdx < preBalances.length) {
-                const diff = (postBalances[signerIdx] ?? 0) - (preBalances[signerIdx] ?? 0);
+                const diff = Number(BigInt(postBalances[signerIdx] ?? 0) - BigInt(preBalances[signerIdx] ?? 0));
                 if (diff > 0) amountLamports = diff;
             }
         }
@@ -959,7 +966,7 @@ export class ClaimMonitor {
             const distributions: ParsedDistribution[] = [];
             for (const ref of refs) {
                 if (ref.err) continue;
-                if (ref.blockTime != null && event.timestamp - ref.blockTime > HISTORY_MAX_AGE_SEC) break;
+                if (ref.blockTime != null && event.timestamp - Number(ref.blockTime) > HISTORY_MAX_AGE_SEC) break;
                 const tx = await this.rpc.withFallback((conn) => conn.getTransaction(ref.signature, {
                     commitment: 'confirmed', maxSupportedTransactionVersion: 0,
                 }));

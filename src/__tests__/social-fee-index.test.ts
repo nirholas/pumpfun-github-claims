@@ -9,11 +9,11 @@ const NEW_PDA = '6t8LvTB1dEyyTjFBkqMWPxBHAj3n2actRKbTRJLAJmBQ';
 function updateEvent(addresses: string[]): Buffer {
     const bytes = Buffer.alloc(112 + 4 + addresses.length * 34);
     Buffer.from(UPDATE_FEE_SHARES_EVENT_DISC, 'hex').copy(bytes, 0);
-    new PublicKey(MINT).toBuffer().copy(bytes, 16);
+    bytes.set(new PublicKey(MINT).toBytes(), 16);
     bytes.writeUInt32LE(addresses.length, 112);
     let offset = 116;
     for (const address of addresses) {
-        new PublicKey(address).toBuffer().copy(bytes, offset);
+        bytes.set(new PublicKey(address).toBytes(), offset);
         bytes.writeUInt16LE(10_000 / addresses.length, offset + 32);
         offset += 34;
     }
